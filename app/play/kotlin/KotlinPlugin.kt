@@ -27,9 +27,10 @@ class KotlinPlugin : CorePlugin() {
   }
 
   private fun addClass(file: File, top: File) {
-    if (file.name.contains("Plugin")) return
+    val className = toClassName(file, top)
+    if (Play.classes.hasClass(className) || className.contains("Plugin")) return
     Play.classes.add(ApplicationClass().apply {
-      name = toClassName(file, top)
+      name = className
       javaFile = VirtualFile.open(file)
       refresh()
       compiled(file.readBytes())
