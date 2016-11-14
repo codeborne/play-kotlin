@@ -1,10 +1,11 @@
 package play.kotlin
 
-import controllers.Application
 import play.CorePlugin
+import play.Logger
 import play.Play
 import play.classloading.ApplicationClasses.ApplicationClass
 import play.vfs.VirtualFile
+import java.io.File
 
 class KotlinPlugin : CorePlugin() {
   init {
@@ -12,14 +13,31 @@ class KotlinPlugin : CorePlugin() {
   }
 
   override fun compileSources(): Boolean {
-    Play.classes.add(ApplicationClass().apply {
-      name = "controllers.Application"
-      javaFile = VirtualFile.open("app/controllers/Application.kt")
-      refresh()
-      compiled(Application::class.java.getResource("Application.class").readBytes())
-    })
+    val dir = File(javaClass.getResource("/").path)
+    Logger.info("Loading precompiled Kotlin classes from $dir")
+    addClassesFrom(dir, dir)
     return true
   }
+
+  private fun addClassesFrom(dir: File, top: File) {
+    dir.listFiles().forEach { entry ->
+      if (entry.isDirectory) addClassesFrom(entry, top)
+      else if (entry.name.endsWith(".class")) addClass(entry, top)
+    }
+  }
+
+  private fun addClass(file: File, top: File) {
+    if (file.name.contains("Plugin")) return
+    Play.classes.add(ApplicationClass().apply {
+      name = toClassName(file, top)
+      javaFile = VirtualFile.open(file)
+      refresh()
+      compiled(file.readBytes())
+    })
+  }
+
+  private fun toClassName(file: File, top: File) =
+      file.path.removePrefix(top.path).removePrefix("/").replace('/', '.').removeSuffix(".class")
 
   fun ApplicationClass.isKotlin() = javaFile.name.endsWith(".kt")
 
