@@ -43,7 +43,8 @@ class KotlinPlugin : CorePlugin() {
   fun ApplicationClass.isKotlin() = javaFile.name.endsWith(".kt")
 
   override fun enhance(applicationClass: ApplicationClass) {
-//    if (!applicationClass.isKotlin())
+    // TODO: check which enhancers are needed by Kotlin classes
+    //    if (!applicationClass.isKotlin())
       super.enhance(applicationClass)
   }
 }
