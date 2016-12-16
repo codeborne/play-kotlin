@@ -6,9 +6,12 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import play.CorePlugin
+import play.Logger
 import play.Play
 import play.classloading.ApplicationClasses
 import play.classloading.ApplicationClasses.ApplicationClass
+import play.classloading.enhancers.*
+import play.exceptions.UnexpectedException
 import play.vfs.VirtualFile
 import java.io.File
 import java.io.FileInputStream
@@ -74,9 +77,24 @@ class KotlinPlugin : CorePlugin() {
 
   fun ApplicationClass.isKotlin() = javaFile.name.endsWith(".kt")
 
+  protected fun enhancers(c: ApplicationClass): Array<Enhancer> {
+    if (!c.isKotlin()) defaultEnhancers()
+    return arrayOf(
+      ContinuationEnhancer(),
+      SigEnhancer(),
+      ControllersEnhancer(),
+      MailerEnhancer(),
+      LocalvariablesNamesEnhancer()
+    )
+  }
+
   override fun enhance(applicationClass: ApplicationClass) {
-    // TODO: check which enhancers are needed by Kotlin classes
-    //    if (!applicationClass.isKotlin())
-      super.enhance(applicationClass)
+    for (enhancer in enhancers(applicationClass)) {
+      try {
+        enhancer.enhanceThisClass(applicationClass)
+      } catch (e: Exception) {
+        throw UnexpectedException("While applying " + enhancer + " on " + applicationClass.name, e)
+      }
+    }
   }
 }
