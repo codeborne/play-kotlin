@@ -3,10 +3,6 @@ package play.kotlin
 import org.apache.commons.io.FileUtils
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.*
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import play.CorePlugin
@@ -23,35 +19,33 @@ class KotlinPlugin : CorePlugin() {
     Play.pluginCollection.disablePlugin(CorePlugin::class.java)
   }
 
+  val k2JVMCompiler = K2JVMCompiler()
+
   override fun compileSources(): Boolean {
-    val k2JVMCompiler = K2JVMCompiler()
     val arguments = K2JVMCompilerArguments()
 
     val javaPath = Play.javaPath
     for (virtualFile in javaPath) {
-      arguments.freeArgs.add(virtualFile.realFile.absolutePath)
+      arguments.freeArgs.add(virtualFile.realFile.path)
     }
-    arguments.destination = Play.tmpDir.absolutePath + "/kotlin"
+    arguments.destination = Play.tmpDir.path + "/kotlin"
     arguments.classpath = System.getProperty("java.class.path")
-    val exec = k2JVMCompiler.exec(CompilerMessageCollector(), Services.EMPTY, arguments)
+    val collector = CompilerMessageCollector()
+    val exec = k2JVMCompiler.exec(collector, Services.EMPTY, arguments)
     if (exec == ExitCode.OK) {
       println("Success!")
       try {
-        val destination = File(arguments.destination)
-        val compileFiles = FileUtils.listFiles(destination, arrayOf("class"), true)
-        for (classFile in compileFiles) {
-          val result = FileInputStream(classFile).readBytes()
-          val name = toClassName(classFile, destination)
-          if (name.startsWith("play.")) continue
-
-          val ktFile = VirtualFile.fromRelativePath("/app/" + name.replace(".", "/") + ".kt")
-          Play.classes.add(ApplicationClasses.ApplicationClass(name, ktFile))
-          Play.classes.getApplicationClass(name).compiled(result)
+        collector.classesToSources.forEach { e ->
+          Play.classes.add(ApplicationClass().apply {
+            name = toClassName(e.key, arguments.destination)
+            javaFile = VirtualFile.open(e.value)
+            refresh()
+            compiled(File(e.key).readBytes())
+          })
         }
       } catch (e: IOException) {
         e.printStackTrace()
       }
-
     } else {
       throw IllegalStateException()
     }
@@ -75,8 +69,8 @@ class KotlinPlugin : CorePlugin() {
     return false
   }
 
-  private fun toClassName(file: File, top: File) =
-      file.path.removePrefix(top.path).removePrefix("/").replace('/', '.').removeSuffix(".class")
+  private fun toClassName(path: String, top: String) =
+      path.removePrefix(top).removePrefix("/").replace('/', '.').removeSuffix(".class")
 
   fun ApplicationClass.isKotlin() = javaFile.name.endsWith(".kt")
 
