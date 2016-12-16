@@ -2,5 +2,6 @@
 
 require:
     - play
-    - org.jetbrains.kotlin -> kotlin-runtime 1.0.5
-    - org.jetbrains.kotlin -> kotlin-reflect 1.0.5
+    - org.jetbrains.kotlin -> kotlin-runtime 1.0.5-2
+    - org.jetbrains.kotlin -> kotlin-reflect 1.0.5-2
+    - org.jetbrains.kotlin -> kotlin-compiler-embeddable 1.0.5-2
