@@ -78,7 +78,7 @@ class KotlinPlugin : CorePlugin() {
   fun ApplicationClass.isKotlin() = javaFile.name.endsWith(".kt")
 
   protected fun enhancers(c: ApplicationClass): Array<Enhancer> {
-    if (!c.isKotlin()) defaultEnhancers()
+    if (!c.isKotlin()) return defaultEnhancers()
     return arrayOf(
       ContinuationEnhancer(),
       SigEnhancer(),
