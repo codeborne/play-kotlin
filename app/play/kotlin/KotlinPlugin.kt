@@ -23,32 +23,6 @@ class KotlinPlugin : CorePlugin() {
     Play.pluginCollection.disablePlugin(CorePlugin::class.java)
   }
 
-  class CompilerMessageCollector : MessageCollector {
-    var hasErrors = false;
-
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
-      val path = location.path
-      val position = if (path == null) "" else path + ": (" + (location.line.toString() + ", " + location.column) + ") "
-
-      val text = position + message
-
-      if (VERBOSE.contains(severity)) {
-        println("VERBOSE" + text)
-      } else if (ERRORS.contains(severity)) {
-        println("ERRORS" + text)
-        hasErrors = true;
-      } else if (INFO == severity) {
-        println("INFO" + text)
-      } else {
-        println("VERBOSE" + text)
-      }
-    }
-
-    override fun clear() { }
-
-    override fun hasErrors() = hasErrors
-  }
-
   override fun compileSources(): Boolean {
     val k2JVMCompiler = K2JVMCompiler()
     val arguments = K2JVMCompilerArguments()
