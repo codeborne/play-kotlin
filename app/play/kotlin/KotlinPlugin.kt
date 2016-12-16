@@ -36,7 +36,7 @@ class KotlinPlugin : CorePlugin() {
     val collector = CompilerMessageCollector()
     val exec = k2JVMCompiler.exec(collector, Services.EMPTY, arguments)
     if (exec == ExitCode.OK) {
-      println("Success!")
+      Logger.info("Compiled: " + collector.classesToSources)
       try {
         collector.classesToSources.forEach { e ->
           Play.classes.add(ApplicationClass().apply {

@@ -9,3 +9,10 @@ Note that we don't call Kotlin compiler from within running Play (as it does wit
 but rely on already precompiled Kotlin classes by the IDE or build system.
 
 A lot of work is still to be done.
+
+## TODO
+
+- initialize Kotlin compiler only once (it takes time)
+- incremental compilation?
+- javassist problem - do not use LocalVariableEnhancer with Kotlin, add a better API for rendering
+- add better API for JPA
