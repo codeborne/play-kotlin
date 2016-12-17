@@ -83,8 +83,7 @@ class KotlinPlugin : CorePlugin() {
       ContinuationEnhancer(),
       SigEnhancer(),
       ControllersEnhancer(),
-      MailerEnhancer(),
-      LocalvariablesNamesEnhancer()
+      MailerEnhancer()
     )
   }
 
