@@ -2,8 +2,7 @@ package controllers
 
 import models.User
 import play.db.jpa.JPA
-import play.mvc.Controller
-import play.mvc.Scope
+import play.kotlin.Controller
 
 class App : Controller() {
   fun index(param: String?) {
@@ -11,9 +10,5 @@ class App : Controller() {
     renderArgs["param"] = param
     renderArgs["user"] = user
     render()
-  }
-
-  operator fun Scope.RenderArgs.set(name: String, value: Any?) {
-    put(name, value)
   }
 }
